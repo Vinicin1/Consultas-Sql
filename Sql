@@ -1,0 +1,67 @@
+-- Soma os valores da coluna Valor R$ totais
+SELECT SUM(Valor_em_real) AS total_autorizado
+FROM transacoes_clara
+WHERE Status_ = 'Autorizada';
+-------------------------------------------------------------------
+-- Soma os valores da coluna Valor R$ por periodo 
+SELECT SUM(Valor_em_real) AS total_autorizado
+FROM transacoes_clara
+WHERE Status_ = 'Autorizada'
+  AND Data_da_transacao >= '2025-06-01'
+  AND Data_da_transacao < '2025-07-01';
+----------------------------------------------------------------------
+-- Soma os valores da coluna Valor R$ por periodo 
+SELECT SUM(Valor_em_real) AS total_autorizado
+FROM transacoes_clara
+WHERE Status_ = 'Autorizada'
+  AND Data_da_transacao >= '2025-06-01'
+  AND Data_da_transacao < '2025-07-01';
+  
+ ---------------------------------------------------------------------------- 
+  -- Ver quantidade de aprovações pendentes
+ 
+SELECT Status_de_aprovacao, COUNT(*) AS quantidade
+FROM transacoes_clara
+WHERE Status_de_aprovacao IN ('Necessita aprovação', 'Aprovada', 'Recusada')
+  AND Data_da_transacao >= '2025-06-01'
+  AND Data_da_transacao < '2025-07-01'
+GROUP BY Status_de_aprovacao;
+---------------------------------------------------------------------------------
+
+-- Deletar valores e pe periodos de forma permanente 
+
+DELETE FROM transacoes_clara
+WHERE Data_da_transacao >= '2025-06-01'
+  AND Data_da_transacao < '2025-07-01'
+  AND id IS NOT NULL;
+ ---------------------------------------------------------------------------------- 
+-- visulizar dados por periodo 
+SELECT *
+FROM transacoes_clara
+WHERE data_da_transacao BETWEEN '2025-06-01' AND '2025-06-30';
+-------------------------------------------------------------------------------------
+-- Retira os espaço extras
+UPDATE transacoes_clara
+SET titular = UPPER(
+    TRIM(
+        REGEXP_REPLACE(titular, '\\s+', ' ')
+    )
+);
+------------------------------------------------------------------------------------
+-- atualizar automaticamente o id
+UPDATE transacoes_clara t
+JOIN colaboradores c ON t.Titular = c.Titular
+SET t.id = c.id;
+
+---------------------------------------------------------------------------------------
+-- Numero transações sem colaboradores 
+SELECT 
+    tc.titular,
+    COUNT(*) OVER () AS total_faltando
+FROM (
+    SELECT DISTINCT Titular
+    FROM transacoes_clara
+) tc
+LEFT JOIN colaboradores c
+    ON tc.Titular = c.Titular
+WHERE c.id IS NULL;
